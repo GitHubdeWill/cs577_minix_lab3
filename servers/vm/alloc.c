@@ -191,6 +191,7 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 	int run_length = 0, i;
 	int freerange_start = startscan;
 
+	int f=0,last_freerange_start,last_run_length;  // Added for last fit algorithm
 	for(i = startscan; i >= low; i--) {
 		if(!page_isfree(i)) {
 			int pi;
@@ -206,16 +207,34 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 			continue;
 		}
 		if(!run_length) { freerange_start = i; run_length = 1; }
-		else { freerange_start--; run_length++; }
-		assert(run_length <= pages);
-		if(run_length == pages) {
-			/* good block found! */
-			*len = run_length;
-			return freerange_start;
-		}
-	}
+        else { freerange_start--; run_length++; }
+        assert(run_length <= pages);
+		// Modify start last fit
+        if(run_length >= pages) {
+            /* good block found! */
+            f=1;
+            last_run_length = run_length;
+            last_freerange_start = freerange_start;
+            run_length = 0;
+            //printf("Found Block \n");
+        }
+    }
+    if(f){
+        *len = last_run_length;
+        return last_freerange_start;
+    }
+    return NO_MEM;
+	// 	if(!run_length) { freerange_start = i; run_length = 1; }
+	// 	else { freerange_start--; run_length++; }
+	// 	assert(run_length <= pages);
+	// 	if(run_length == pages) {
+	// 		/* good block found! */
+	// 		*len = run_length;
+	// 		return freerange_start;
+	// 	}
+	// }
 
-	return NO_MEM;
+	// return NO_MEM;
 }
 
 /*===========================================================================*
