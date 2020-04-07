@@ -191,9 +191,19 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 	int run_length = 0, i;
 	int freerange_start = startscan;
 
-	int f=0,last_freerange_start,last_run_length;  // Added for last fit algorithm
+	int f=0,best_freerange_start, best_run_length=-1;  // Added for last fit algorithm
+
 	for(i = startscan; i >= low; i--) {
-		if(!page_isfree(i)) {
+		if(!page_isfree(i)) {  // If the page is not free
+			// Edit Best fit start: We will need to take note of the size of previous free hole
+			if (run_length >= pages) {  // Check if there was a hole that is larger than requested pages
+				f = 1;
+				if (best_run_length == -1 || best_run_length > run_length) {  // If not exist best hole, or the best hole larger than current hole
+					best_freerange_start = freerange_start;
+					best_run_length = run_length;
+				}
+			} 
+			// Edit Best fit end
 			int pi;
 			int chunk = i/BITCHUNK_BITS, moved = 0;
 			run_length = 0;
@@ -206,24 +216,45 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 			if(moved) { i = chunk * BITCHUNK_BITS + BITCHUNK_BITS; }
 			continue;
 		}
-		if(!run_length) { freerange_start = i; run_length = 1; }
-        else { freerange_start--; run_length++; }
-        assert(run_length <= pages);
-		// Modify start last fit
-        if(run_length >= pages) {
-            /* good block found! */
-            f=1;
-            last_run_length = run_length;
-            last_freerange_start = freerange_start;
-            run_length = 0;
-            //printf("Found Block \n");
-        }
+		// Modify for best fit policy
+		if(!run_length) { freerange_start = i; run_length = 1; }  // If the first page of hole
+        else { freerange_start--; run_length++; }  // Update hole size and start
+	}
+
+	// Need to check one more time for the last contiguous pages are hole
+	if (run_length >= pages) {  // Check if there was a hole that is larger than requested pages
+		f = 1;
+		if (best_run_length == -1 || best_run_length > run_length) {  // If not exist best hole, or the best hole larger than current hole
+			best_freerange_start = freerange_start;
+			best_run_length = run_length;
+		}
+	} 
+
+	if(f){
+        *len = best_run_length;
+        return best_freerange_start;
     }
-    if(f){
-        *len = last_run_length;
-        return last_freerange_start;
-    }
-    return NO_MEM;
+
+	return NO_MEM;
+}
+
+
+	// 	// Modify start last fit
+    //     if(run_length >= pages) {
+    //         /* good block found! */
+    //         f=1;
+    //         last_run_length = run_length;
+    //         last_freerange_start = freerange_start;
+    //         run_length = 0;
+    //         //printf("Found Block \n");
+    //     }
+    // }
+    // if(f){
+    //     *len = last_run_length;
+    //     return last_freerange_start;
+    // }
+    // return NO_MEM;
+	//  // Modify end last fit
 	// 	if(!run_length) { freerange_start = i; run_length = 1; }
 	// 	else { freerange_start--; run_length++; }
 	// 	assert(run_length <= pages);
@@ -235,7 +266,7 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 	// }
 
 	// return NO_MEM;
-}
+// }
 
 /*===========================================================================*
  *				alloc_pages				     *
@@ -274,8 +305,9 @@ static phys_bytes alloc_pages(int pages, int memflags)
 		startscan = lastscan;
 	else	startscan = maxpage;
 
-	if(mem == NO_MEM)
-		mem = findbit(0, startscan, pages, memflags, &run_length);
+	// Comment for best fit
+	// if(mem == NO_MEM)
+	// 	mem = findbit(0, startscan, pages, memflags, &run_length);
 	if(mem == NO_MEM)
 		mem = findbit(0, maxpage, pages, memflags, &run_length);
 	if(mem == NO_MEM)
