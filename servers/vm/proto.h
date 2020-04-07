@@ -31,6 +31,9 @@ void mem_add_total_pages(int pages);
 
 void mem_init(struct memory *chunks);
 
+// cs577 edit print holes
+int do_print_holes(void);
+
 /* utility.c */
 void get_mem_chunks(struct memory *mem_chunks);
 int vm_isokendpt(endpoint_t ep, int *proc);

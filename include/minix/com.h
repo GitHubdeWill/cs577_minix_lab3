@@ -1074,8 +1074,10 @@
 
 #define VMPPARAM_CLEAR		1	/* values for VMPCTL_PARAM */
 
+#define VM_PRINTHOLES	(VM_RQ_BASE+46) /* CS577 edit */
+
 /* Total. */
-#define NR_VM_CALLS				46
+#define NR_VM_CALLS				47  /* CS577 edit */
 #define VM_CALL_MASK_SIZE			BITMAP_CHUNKS(NR_VM_CALLS)
 
 /* not handled as a normal VM call, thus at the end of the reserved rage */

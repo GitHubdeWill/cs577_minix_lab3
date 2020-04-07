@@ -66,6 +66,9 @@
 #define GETMCONTEXT       67
 #define SETMCONTEXT       68
 
+/* 577 added print holes */
+#define PRINTHOLES		69
+
 /* Posix signal handling. */
 #define SIGACTION	  71
 #define SIGSUSPEND	  72

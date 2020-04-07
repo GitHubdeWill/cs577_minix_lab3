@@ -111,8 +111,12 @@ int main(void)
 		panic("invalid caller %d", who_e);
 	c = CALLNUMBER(msg.m_type);
 	result = ENOSYS; /* Out of range or restricted calls return this. */
-	
-	if(msg.m_type == RS_INIT && msg.m_source == RS_PROC_NR) {
+
+	// We check for print_holes first cs577
+	if (msg.m_type == VM_PRINTHOLES) {
+		result = do_print_holes();
+	}
+	else if(msg.m_type == RS_INIT && msg.m_source == RS_PROC_NR) {
 		result = do_rs_init(&msg);
 	} else if (msg.m_type == VM_PAGEFAULT) {
 		if (!IPC_STATUS_FLAGS_TEST(rcv_sts, IPC_FLG_MSG_FROM_KERNEL)) {

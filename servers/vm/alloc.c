@@ -268,6 +268,13 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 	// return NO_MEM;
 // }
 
+// Loop through all pages and print holes
+
+int do_print_holes(void) {
+	printf("Test System call print holes\n");
+	return OK;
+}
+
 /*===========================================================================*
  *				alloc_pages				     *
  *===========================================================================*/
