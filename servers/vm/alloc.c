@@ -270,8 +270,40 @@ static int findbit(int low, int startscan, int pages, int memflags, int *len)
 
 // Loop through all pages and print holes
 
-int do_print_holes() {
-	printf("Test System call print holes\n");
+int do_print_holes(message *m_ptr) {
+	int least_size = m_ptr->m_u.m_m2.m2i1;
+	printf("VM: System call print_holes, size at least: %d\n", least_size);
+	int maxpage = NUMBER_PHYSICAL_PAGES - 1;
+	int run_length = 0, i;
+	int freerange_start = maxpage;
+	int low = 0;
+	int hole_count = 0;  // Number of holes
+
+	printf(">>> Holes Details Start\n");
+
+	for(i = maxpage; i >= low; i--) {
+		if(!page_isfree(i)) {  // If the page is not free, we will check if there is a hole before it
+			if (run_length > least_size) {  // Check if there was a hole that is larger than least_size
+				// Print the hole details to console
+				// format: holecount startpage length
+				printf("%d %d %d\n", hole_count++, freerange_start, run_length);
+			} 
+			run_length = 0;
+			continue;
+		}
+		// If it is empty, we will keep track of 
+		if(!run_length) { freerange_start = i; run_length = 1; }  // If the first page of hole
+        else { freerange_start--; run_length++; }  // Update hole size and start
+	}
+
+	// Need to check one more time for the last contiguous pages are hole
+	if (run_length > least_size) {  // Check if there was a hole that is larger than requested pages
+		// Print the hole details to console
+		// format: holecount startpage length
+		printf("%d %d %d\n", hole_count++, freerange_start, run_length);
+	} 
+
+	printf("<<< Holes Details End\n");
 	return OK;
 }
 
@@ -287,12 +319,17 @@ static phys_bytes alloc_pages(int pages, int memflags)
 	static int lastscan = -1;
 	int startscan, run_length;
 
-	if(memflags & PAF_LOWER16MB)
+	if(memflags & PAF_LOWER16MB) {
 		maxpage = boundary16 - 1;
-	else if(memflags & PAF_LOWER1MB)
+		printf("VM: using boundary16, memflag: %d\n", memflags);
+	}
+	else if(memflags & PAF_LOWER1MB) {
 		maxpage = boundary1 - 1;
+		printf("VM: using boundary1, memflag: %d\n", memflags);
+	}
 	else {
 		/* no position restrictions: check page cache */
+		// printf("VM: no position restrictions\n");
 		if(pages == 1) {
 			while(free_page_cache_size > 0) {
 				i = free_page_cache[free_page_cache_size-1];

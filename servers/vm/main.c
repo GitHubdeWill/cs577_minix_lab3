@@ -114,7 +114,7 @@ int main(void)
 
 	// We check for print_holes first cs577
 	if (msg.m_type == VM_PRINTHOLES) {
-		result = do_print_holes();
+		result = do_print_holes(&msg);
 	}
 	else if(msg.m_type == RS_INIT && msg.m_source == RS_PROC_NR) {
 		result = do_rs_init(&msg);

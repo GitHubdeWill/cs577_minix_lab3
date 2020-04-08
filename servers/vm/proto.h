@@ -32,7 +32,7 @@ void mem_add_total_pages(int pages);
 void mem_init(struct memory *chunks);
 
 // cs577 edit print holes
-int do_print_holes(void);
+int do_print_holes(message *m_ptr);
 
 /* utility.c */
 void get_mem_chunks(struct memory *mem_chunks);
